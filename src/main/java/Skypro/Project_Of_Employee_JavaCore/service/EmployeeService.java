@@ -6,9 +6,7 @@ import Skypro.Project_Of_Employee_JavaCore.exceptions.EmployeeStorageIsFullExcep
 import Skypro.Project_Of_Employee_JavaCore.model.Employee;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Service
 /**
@@ -21,68 +19,81 @@ public class EmployeeService {
      */
     private final static int MAX_COUNT_EMPLOYEES = 3;
     /**
-     * Список всех сотрудников в организации
+     * Мапа всех сотрудников в организации
      */
-    private List<Employee> employeeList = new ArrayList<>();
+    private Map<String, Employee> employeeMap = new HashMap<>();
 
     /**
-     * Добавление нового сотрудника в список всех сотрудников организации
+     * Создание ключа и Добавление нового сотрудника в список всех сотрудников организации по ключу
+     *
      * @param firstName не может быть {@code null}
-     * @param lastName не может быть {@code null}
+     * @param lastName  не может быть {@code null}
      * @return добавленный сотрудник
      */
     public Employee addEmployee(String firstName, String lastName) {
-        if(employeeList.size()>MAX_COUNT_EMPLOYEES) {
+        if (employeeMap.size() > MAX_COUNT_EMPLOYEES) {
             throw new EmployeeStorageIsFullException("Штат сотрудников переполнен.");
         }
         Employee addedEmployee = new Employee(firstName, lastName);
-        if(employeeList.contains(addedEmployee)) {
+        String key = makeKey(firstName, lastName);
+        if (employeeMap.containsKey(key)) {
             throw new EmployeeAlreadyAddedException("Такой сотрудник уже имеется в штате.");
         }
-        employeeList.add(addedEmployee);
+        employeeMap.put(key, addedEmployee);
         return addedEmployee;
     }
 
     /**
-     * Удаление сотрудника из списка всех сотрудников организации
+     * Создание ключа и Удаление сотрудника из списка всех сотрудников организации по ключу
+     *
      * @param firstName не может быть {@code null}
-     * @param lastName не может быть {@code null}
+     * @param lastName  не может быть {@code null}
      * @return удаленный сотрудник
      */
     public Employee deleteEmployee(String firstName, String lastName) {
         Employee removedEmployee = new Employee(firstName, lastName);
-        if(!employeeList.contains(removedEmployee)) {
+        String key = makeKey(firstName, lastName);
+        if (!employeeMap.containsKey(key)) {
             throw new EmployeeNotFoundException("Такого сотрудника в списке всех сотрудников организации нет!");
         }
-        employeeList.remove(removedEmployee);
+        employeeMap.remove(key, removedEmployee);
         return removedEmployee;
     }
 
     /**
-     * Поиск сотрудника в списке всех сотрудников организации
+     * Создание ключа и Поиск сотрудника в списке всех сотрудников организации по ключу
+     *
      * @param firstName не может быть {@code null}
-     * @param lastName не может быть {@code null}
+     * @param lastName  не может быть {@code null}
      * @return искомый сотрудник
      */
     public Employee findEmployee(String firstName, String lastName) {
-        Employee findedEmployee = new Employee(firstName,lastName);
-        if(!employeeList.contains(findedEmployee)) {
+        Employee findedEmployee = new Employee(firstName, lastName);
+        String key = makeKey(firstName, lastName);
+        if (!employeeMap.containsKey(key)) {
             throw new EmployeeNotFoundException("Такого сотрудника в списке всех сотрудников организации нет!");
+        } else {
+            return employeeMap.get(key);
         }
-        Employee result = null;
-        for (Employee employees: employeeList) {
-            if(employees.equals(findedEmployee)) {
-                result = findedEmployee;
-            }
-        }
-        return result;
     }
 
     /**
      * Получение имеющегося списка всех сотрудников организации, который не модифицирован
+     *
      * @return список всех сотрудников организации
      */
-    public List<Employee> getAll() {
-        return Collections.unmodifiableList(employeeList);
+    public Collection<Employee> getAll() {
+        return Collections.unmodifiableCollection(employeeMap.values());
+    }
+
+    /**
+     * Метод, выполняющий создание ключа
+     *
+     * @param firstName не может быть {@code null}
+     * @param lastName  не может быть {@code null}
+     * @return метод по получению ключу
+     */
+    public String makeKey(String firstName, String lastName) {
+        return firstName + lastName;
     }
 }
